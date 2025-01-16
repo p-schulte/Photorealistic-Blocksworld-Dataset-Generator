@@ -1,6 +1,10 @@
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
+from pyvis import network as pvnet
+
+# CONSTS:
+FILENAME = "test.json"
 
 def create_scene_graph(data):
     """
@@ -33,7 +37,7 @@ def create_scene_graph(data):
 
     return scene_graph
 
-def visualize_scene_graph(scene_graph):
+def visualize_matplotlib(scene_graph):
     """
     Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
 
@@ -82,10 +86,109 @@ def visualize_scene_graph(scene_graph):
     plt.title("Scene Graph (Multigraph)")
     plt.show()
 
+def visualize_scene_graph(scene_graph):
+    """
+    Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
+
+    Args:
+        scene_graph (dict): Scene graph represented as a dictionary.
+    """
+    G = nx.MultiDiGraph()
+
+    # Add nodes with attributes
+    for node_id, attributes in scene_graph["nodes"].items():
+        label = f"{attributes['shape']}\n{attributes['color']}\n{attributes['material']}"
+        G.add_node(node_id, label=str(node_id), color=attributes['color'])
+
+    # Add edges with multiple relationships
+    for source, target, relationship in scene_graph["edges"]:
+        G.add_edge(source, target, label=relationship)
+
+    name='out.html'
+    g = G.copy() # some attributes added to nodes
+    net = pvnet.Network(notebook=True, directed=True)
+    opts = '''
+        var options = {
+          "physics": {
+            "forceAtlas2Based": {
+              "gravitationalConstant": -100,
+              "centralGravity": 0.11,
+              "springLength": 100,
+              "springConstant": 0.09,
+              "avoidOverlap": 1
+            },
+            "minVelocity": 0.75,
+            "solver": "forceAtlas2Based",
+            "timestep": 0.22
+          }
+        }
+    '''
+
+    net.set_options(opts)
+    # uncomment this to play with layout
+    # net.show_buttons(filter_=['physics'])
+    net.from_nx(g)
+    return net.show(name)
+
+def visualize_2(scene_graph):
+    """
+    Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
+
+    Args:
+        scene_graph (dict): Scene graph represented as a dictionary.
+    """
+    G = nx.MultiDiGraph()
+
+    # Add nodes with attributes
+    for node_id, attributes in scene_graph["nodes"].items():
+        label = f"{attributes['shape']}\n{attributes['color']}\n{attributes['material']}"
+        G.add_node(node_id, label=str(node_id), color=attributes['color'])
+
+    # Add edges with multiple relationships
+    for source, target, relationship in scene_graph["edges"]:
+        G.add_edge(source, target, label=relationship)
+
+    name = 'out2.html'
+    g = G.copy()  # Some attributes added to nodes
+    net = pvnet.Network(notebook=True, directed=True)
+
+    opts = """
+    {
+        "physics": {
+            "forceAtlas2Based": {
+                "gravitationalConstant": -100,
+                "centralGravity": 0.11,
+                "springLength": 100,
+                "springConstant": 0.09,
+                "avoidOverlap": 1
+            },
+            "minVelocity": 0.75,
+            "solver": "forceAtlas2Based",
+            "timestep": 0.22
+        },
+        "manipulation": {
+            "enabled": true,
+            "dragNode": true,
+            "zoomSpeed": 0.1,
+            "zoomView": true
+        }
+    }
+    """
+
+    net.set_options(opts)
+    
+    # Uncomment this to play with layout
+    # net.show_buttons(filter_=['physics'])
+
+    net.from_nx(g)
+    return net.show(name)
+
+
+
 # Example usage
 if __name__ == "__main__":
     # Read JSON data from file
-    with open("test.json", "r") as file:
+    with open(FILENAME, "r") as file:
         data = json.load(file)
 
     # Create the scene graph
@@ -97,3 +200,4 @@ if __name__ == "__main__":
 
     # Visualize the scene graph
     visualize_scene_graph(scene_graph)
+    visualize_2(scene_graph)
