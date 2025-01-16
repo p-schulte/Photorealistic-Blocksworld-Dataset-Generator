@@ -1,0 +1,9 @@
+
+name : prb
+dependencies:
+  - python=3
+  - jq
+  - pip
+  - pip:
+    - parallel
+    - -r file:requirements.txt
