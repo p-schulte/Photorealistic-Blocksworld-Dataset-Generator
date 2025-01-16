@@ -6,6 +6,24 @@ from pyvis import network as pvnet
 # CONSTS:
 FILENAME = "test.json"
 
+
+def rgba_to_hex(color):
+    """
+    Convert an RGBA color with values in [0, 1] range to a HEX color string.
+
+    Args:
+        color (list): A list of four floats [R, G, B, A] where each value is in the range [0, 1].
+
+    Returns:
+        str: HEX color string in the format #RRGGBB.
+    """
+    r, g, b, _ = color  # Ignore the alpha channel
+    return '#{:02x}{:02x}{:02x}'.format(
+        int(r * 255),
+        int(g * 255),
+        int(b * 255)
+    )
+
 def create_scene_graph(data):
     """
     Create a scene graph as a dictionary from the given data.
@@ -98,57 +116,13 @@ def visualize_scene_graph(scene_graph):
     # Add nodes with attributes
     for node_id, attributes in scene_graph["nodes"].items():
         label = f"{attributes['shape']}\n{attributes['color']}\n{attributes['material']}"
-        G.add_node(node_id, label=str(node_id), color=attributes['color'])
+        G.add_node(node_id, label=str(node_id), color=rgba_to_hex(attributes['color']))
 
     # Add edges with multiple relationships
     for source, target, relationship in scene_graph["edges"]:
         G.add_edge(source, target, label=relationship)
 
-    name='out.html'
-    g = G.copy() # some attributes added to nodes
-    net = pvnet.Network(notebook=True, directed=True)
-    opts = '''
-        var options = {
-          "physics": {
-            "forceAtlas2Based": {
-              "gravitationalConstant": -100,
-              "centralGravity": 0.11,
-              "springLength": 100,
-              "springConstant": 0.09,
-              "avoidOverlap": 1
-            },
-            "minVelocity": 0.75,
-            "solver": "forceAtlas2Based",
-            "timestep": 0.22
-          }
-        }
-    '''
-
-    net.set_options(opts)
-    # uncomment this to play with layout
-    # net.show_buttons(filter_=['physics'])
-    net.from_nx(g)
-    return net.show(name)
-
-def visualize_2(scene_graph):
-    """
-    Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
-
-    Args:
-        scene_graph (dict): Scene graph represented as a dictionary.
-    """
-    G = nx.MultiDiGraph()
-
-    # Add nodes with attributes
-    for node_id, attributes in scene_graph["nodes"].items():
-        label = f"{attributes['shape']}\n{attributes['color']}\n{attributes['material']}"
-        G.add_node(node_id, label=str(node_id), color=attributes['color'])
-
-    # Add edges with multiple relationships
-    for source, target, relationship in scene_graph["edges"]:
-        G.add_edge(source, target, label=relationship)
-
-    name = 'out2.html'
+    name = 'visualize.html'
     g = G.copy()  # Some attributes added to nodes
     net = pvnet.Network(notebook=True, directed=True)
 
@@ -181,6 +155,7 @@ def visualize_2(scene_graph):
     # net.show_buttons(filter_=['physics'])
 
     net.from_nx(g)
+
     return net.show(name)
 
 
@@ -200,4 +175,3 @@ if __name__ == "__main__":
 
     # Visualize the scene graph
     visualize_scene_graph(scene_graph)
-    visualize_2(scene_graph)

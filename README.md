@@ -62,6 +62,18 @@ To generate 10 transitions with 5 objects each. For every state, there are 3 obj
 
     ./generate-dataset.sh 5 10 3 1 true
 
+# Visualization
+
+To visualize the generated ```.json``` file, the ```visualize_scene_graph.py``` file in the ```visualize``` folder can be used:
+
+<div align="center">
+  <img src="example/image/visualize_photo.png" width="500px">
+</div>
+<div align="center">
+  <img src="example/image/visualize.png" width="500px">
+</div>
+
+
 # Citation
 
 ``` bibtex

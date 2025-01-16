@@ -131,10 +131,10 @@ def render_scene(args,
   utils.delete_object(plane)
 
   # Save all six axis-aligned directions in the scene struct
-  scene_struct['directions']['behind'] = tuple(plane_behind)
-  scene_struct['directions']['front'] = tuple(-plane_behind)
   scene_struct['directions']['left'] = tuple(plane_left)
   scene_struct['directions']['right'] = tuple(-plane_left)
+  scene_struct['directions']['behind'] = tuple(plane_behind)
+  scene_struct['directions']['front'] = tuple(-plane_behind)
   scene_struct['directions']['above'] = tuple(plane_up)
   scene_struct['directions']['below'] = tuple(-plane_up)
 
@@ -230,6 +230,12 @@ def compute_all_relationships(scene_struct, eps=0.2):
       related = set()
       for j, obj2 in enumerate(scene_struct['objects']):
         if obj1 == obj2: continue
+
+        if name == 'above' or name == 'below': # skip if object already left or right
+          if j in all_relationships['right'][i]:
+            continue
+          if j in all_relationships['left'][i]:
+            continue
         coords2 = obj2['location']
         diff = [coords2[k] - coords1[k] for k in [0, 1, 2]]
         dot = sum(diff[k] * direction_vec[k] for k in [0, 1, 2])
