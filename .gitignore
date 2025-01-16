@@ -1,4 +1,10 @@
+# blender
 blender-2.83.2-linux64/
 blender-2.83.2-linux64.tar.xz
+
+# frames
 output/image_tr
 output/scene_tr
+
+# python 
+__pycache__/
