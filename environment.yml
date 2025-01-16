@@ -4,6 +4,8 @@ dependencies:
   - python=3
   - jq
   - pip
+  - networkx
+  - matplotlib
   - pip:
     - parallel
     - -r file:requirements.txt

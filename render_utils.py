@@ -223,7 +223,7 @@ def compute_all_relationships(scene_struct, eps=0.2):
   """
   all_relationships = {}
   for name, direction_vec in scene_struct['directions'].items():
-    if name == 'above' or name == 'below': continue
+    #if name == 'above' or name == 'below': continue
     all_relationships[name] = []
     for i, obj1 in enumerate(scene_struct['objects']):
       coords1 = obj1['location']
