@@ -8,3 +8,18 @@ output/scene_tr
 
 # python 
 __pycache__/
+
+
+
+*~
+#*
+cylinders*/
+*.pyc
+*.png
+output/
+/*.json
+/*.npz
+blocks*/
+blender*
+backup*/
+all/
