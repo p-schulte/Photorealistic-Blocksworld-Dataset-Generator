@@ -70,7 +70,7 @@ To visualize the generated ```.json``` file, the ```visualize_scene_graph.py``` 
   <img src="example/image/visualize_photo.png" width="500px">
 </div>
 <div align="center">
-  <img src="example/image/visualize.png" width="500px">
+  <img src="example/image/Visualize.png" width="500px">
 </div>
 
 
