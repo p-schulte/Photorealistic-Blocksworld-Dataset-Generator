@@ -3,9 +3,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from pyvis import network as pvnet
 
-# CONSTS:
-FILENAME = "test.json"
-
 
 def rgba_to_hex(color):
     """
@@ -104,6 +101,77 @@ def visualize_matplotlib(scene_graph):
     plt.title("Scene Graph (Multigraph)")
     plt.show()
 
+
+
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image
+
+
+def create_annotations_and_display_image(json_data, png_file):
+    """
+    Creates bounding boxes for the objects and overlays them on a PNG file.
+
+    Parameters:
+    objects (dict): Object data containing 'location' and 'size' attributes.
+    png_file (str): Path to the rendered image file (PNG format).
+    image_width (int): Width of the rendered image.
+    image_height (int): Height of the rendered image.
+    """
+    # Open the PNG file
+    try:
+        img = Image.open(png_file)
+    except FileNotFoundError:
+        print(f"Error: File '{png_file}' not found.")
+        return
+
+    # Define the figure and axis
+    fig, ax = plt.subplots(1)
+    ax.imshow(img)
+
+    objects = json_data["objects"]
+    for obj_id, obj in enumerate(objects):
+        color = obj["color"][:3]    # Use RGB values for the bounding box color
+
+        # Define bounding box coordinates
+        xmin = obj["bbox"][0]
+        ymin = obj["bbox"][1]
+        xmax = obj["bbox"][2]
+        ymax = obj["bbox"][3]
+
+        # Create a rectangle for the bounding box
+        rect = patches.Rectangle(
+            (xmin, ymin),  # Bottom-left corner
+            xmax - xmin,   # Width
+            ymax - ymin,   # Height
+            linewidth=2,
+            edgecolor=color,
+            facecolor='none'
+        )
+        ax.add_patch(rect)
+
+        # Add object ID as a label
+        ax.text(
+            xmin,
+            ymin - 0,  # Position label slightly above the bounding box
+            f"{obj_id}",
+            color='white',
+            fontsize=10,
+            ha='left',
+            bbox=dict(facecolor='black', edgecolor='none', alpha=0.4)
+        )
+
+    # Display the image
+    plt.axis('off')
+    plt.show()
+
+
+
+
+
+
+
 def visualize_scene_graph(scene_graph):
     """
     Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
@@ -122,7 +190,7 @@ def visualize_scene_graph(scene_graph):
     for source, target, relationship in scene_graph["edges"]:
         G.add_edge(source, target, label=relationship)
 
-    name = 'visualize.html'
+    name = 'output/visualize_scene_graph_output.html'
     g = G.copy()  # Some attributes added to nodes
     net = pvnet.Network(notebook=True, directed=True)
 
@@ -158,20 +226,42 @@ def visualize_scene_graph(scene_graph):
 
     return net.show(name)
 
+import sys
+import pprint
 
+JSONFILE="test.json"
+IMAGEFILE="test.png"
 
 # Example usage
 if __name__ == "__main__":
+    # Check if a filename is provided as a command-line argument
+    if len(sys.argv) > 1:
+        JSONFILE = sys.argv[1]
+
+    if len(sys.argv) > 2:
+        IMAGEFILE = sys.argv[2]
+
     # Read JSON data from file
-    with open(FILENAME, "r") as file:
-        data = json.load(file)
+    try:
+        with open(JSONFILE, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"Error: File '{JSONFILE}' not found.")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: Failed to decode JSON from '{JSONFILE}'.")
+        sys.exit(1)
 
     # Create the scene graph
     scene_graph = create_scene_graph(data)
-    
-    # Prints the nicely formatted dictionary
-    import pprint
-    pprint.pprint(scene_graph)
+
+    # Print the nicely formatted dictionary
+    pprint.pprint(scene_graph['edges'])
+    pprint.pprint(scene_graph['nodes'])
 
     # Visualize the scene graph
     visualize_scene_graph(scene_graph)
+
+    # Visualize bounding boxes
+    #visualize_bounding_boxes(scene_graph['nodes'], IMAGEFILE)
+    create_annotations_and_display_image(data, IMAGEFILE)

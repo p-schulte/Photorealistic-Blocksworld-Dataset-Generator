@@ -2,6 +2,7 @@ from __future__ import print_function
 import sys, random, json, os, tempfile
 from collections import Counter
 import numpy as np
+import copy
 
 INSIDE_BLENDER = True
 try:
@@ -21,7 +22,6 @@ if INSIDE_BLENDER:
     print("\nWhere $BLENDER is the directory where Blender is installed, and")
     print("$VERSION is your Blender version (such as 2.78).")
     sys.exit(1)
-
 
 def render_scene(args,
     output_image='render.png',
@@ -152,6 +152,14 @@ def render_scene(args,
   # Now make some random objects
   blender_objects = add_objects(args, scene_struct, camera, objects)
 
+  # insert "table" object into objects
+  table_object = copy.deepcopy(objects[0])
+  table_object["bbox"] = (85.0, 170.0, 210.0, 155.0)
+  table_object["id"] = len(objects)
+  table_object["color"] = [255/255.0, 87/255.0, 34/255.0, 1.0]
+  table_object["location"] = [0, 0, 0]
+  objects.append(table_object)
+
   # Render the scene and dump the scene data structure
   scene_struct['objects'] = objects
   scene_struct['relationships'] = compute_all_relationships(scene_struct)
@@ -222,26 +230,57 @@ def compute_all_relationships(scene_struct, eps=0.2):
   object j is left of object i.
   """
   all_relationships = {}
-  for name, direction_vec in scene_struct['directions'].items():
-    #if name == 'above' or name == 'below': continue
-    all_relationships[name] = []
-    for i, obj1 in enumerate(scene_struct['objects']):
-      coords1 = obj1['location']
-      related = set()
-      for j, obj2 in enumerate(scene_struct['objects']):
-        if obj1 == obj2: continue
+  non_table_objects = scene_struct['objects'][:-1]
+  table_index = len(non_table_objects)
 
-        if name == 'above' or name == 'below': # skip if object already left or right
-          if j in all_relationships['right'][i]:
-            continue
-          if j in all_relationships['left'][i]:
-            continue
-        coords2 = obj2['location']
-        diff = [coords2[k] - coords1[k] for k in [0, 1, 2]]
-        dot = sum(diff[k] * direction_vec[k] for k in [0, 1, 2])
-        if dot > eps:
-          related.add(j)
-      all_relationships[name].append(sorted(list(related)))
+  # "ON" relationship:
+  direction_vec = scene_struct['directions']['above']
+  name = "on"
+  all_relationships[name] = []
+  for i, obj1 in enumerate(non_table_objects):
+    coords1 = obj1['location']
+    size1 = obj1['size']
+    related = set()
+    for j, obj2 in enumerate(non_table_objects):
+      if obj1 == obj2: continue
+      coords2 = obj2['location']
+      size2 = obj2['size']
+      x_diff = abs(coords2[0] - coords1[0])
+      if x_diff > eps: continue
+      y_diff = coords1[2] - coords2[2]
+      size_buff = size1 + size2
+      y_deviation = abs(y_diff - size_buff)
+      if y_deviation > eps: continue
+      
+      # obj1 is on top of obj2
+      related.add(j)
+    if abs(coords1[2] - size1/2) <= eps:
+      related.add(table_index)
+    all_relationships[name].append(sorted(list(related)))
+
+
+  # "clear" relationship
+  clear_blocks = []
+  for b_id in range(table_index):
+    put = True
+    for blocks in all_relationships[name]:
+      if b_id in blocks: put = False
+
+    if not put: continue
+    clear_blocks.append(b_id)
+
+  name = "clear"
+  all_relationships[name] = []
+  for i in range(table_index):
+    if i not in clear_blocks:
+      all_relationships[name].append(list([]))
+      continue
+    all_relationships[name].append(list([i]))
+
+
+
+
+  
   return all_relationships
 
 

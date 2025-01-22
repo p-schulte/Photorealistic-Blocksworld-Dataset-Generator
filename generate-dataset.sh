@@ -63,8 +63,8 @@ job (){
     $blenderdir/blender -noaudio --background --python render_images.py -- \
                         --properties-json data/cylinders-properties.json \
                         --render-num-samples 150 \
-                        --width 150              \
-                        --height 100             \
+                        --width 300              \
+                        --height 200             \
                         --num-objects $objs      \
                         $use_gpu                 \
                         --output-dir $output_dir \
