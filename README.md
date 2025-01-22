@@ -39,26 +39,19 @@ For the original readme, see [README-clevr.md](README-clevr.md) and [README-ibm.
   The directory contains images and metadata.
   This file must be run in the python environment shipped with Blender.
 
-+ `extract_all_regions_binary.py` :
-
-  For a result directory produced by `render_images.py`,
-  it extracts the regions from the every images generated, resize them to 32x32 and
-  store them in a `.npz` container along with the bounding box vector (x1,y1,x2,y2).
-  Optionally, --include-background option resizes and stores the entire image into a `.npz` container in the same format.
-  In order to have the same format, all bounding boxes have (0,0,xmax,ymax) values and the number of objects is 1.
-  Optionally, --exclude-objects option disables region extraction. When combined with --include-background,
-  the resulting archive is merely a compact, resized image format.
-  See other options from the source scripts or by runnign the script with no arguments.
-  This file must be run in the conda environment.
-
 + `generate-dataset.sh` :
 
-  Render the dataset. Options are ```[number of objects] [number of transitions] [number of jobs] [use gpu?]```. Example run:
+  Render the dataset. Options are ```[number of objects] [number of transitions] [number of images per transition] [number of jobs] [use gpu?]```. Example run:
   ```./generate-dataset.sh 5 10 3 1 true``` 
+
+
++ `generate-and-visualize.sh` :
+
+  Test out the dataset generator. Creates visualization for generated bounding boxes and scene graphs.
 
 # Running
 
-To generate 10 transitions with 5 objects each. For every state, there are 3 objects and GPU is used:
+To generate 10 transitions with 5 objects each. For every state, there are 3 images and GPU is used:
 
     ./generate-dataset.sh 5 10 3 1 true
 
