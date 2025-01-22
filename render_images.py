@@ -61,13 +61,23 @@ def initialize_parser():
 
   return parser
 
-
+""" ORIGINAL VERSION
 def path(dir,i,presuc,j,ext):
   if isinstance(i, int):
     i = "{:06d}".format(i)
   if isinstance(j, int):
     j = "{:03d}".format(j)
   return os.path.join(args.output_dir,dir,"_".join(["CLEVR",i,presuc,j])+"."+ext)
+"""
+
+def path(dir,i,name,j,ext):
+  if isinstance(i, int):
+    i = "{:06d}".format(i)
+  if isinstance(j, int):
+    j = "{:03d}".format(j)
+  os.makedirs(os.path.join(args.output_dir,"image_tr",i), exist_ok=True)
+  os.makedirs(os.path.join(args.output_dir,"scene_tr",i), exist_ok=True)
+  return os.path.join(args.output_dir,dir,i,"_".join(["CLEVR",name,j])+"."+ext)
 
 
 def main(args):
@@ -116,6 +126,9 @@ def main(args):
           #
           # 1/0
 
+
+        # --------------   OLD VERSION -----------------
+        '''
         for j in range(args.num_samples_per_state):
           if os.path.exists(path("image_tr",i,"pre",j,"png")):
             continue
@@ -136,10 +149,69 @@ def main(args):
                        output_scene = path("scene_tr",i,"suc",j,"json"),
                        objects      = state.for_rendering(),
                        action       = state.last_action)
+        '''
+        # --------------   OLD VERSION -----------------
+        WIGGLE_BETWEEN_IMAGES = True
+
+        for j in range(args.num_samples_per_state):
+          if os.path.exists(path("image_tr",i,"pre",j,"png")):
+            continue
+          state = compute_intermediate_state(pre, suc, j, args.num_samples_per_state-1)
+          if WIGGLE_BETWEEN_IMAGES:
+            state.wiggle()
+          render_scene(args,
+                       output_image = path("image_tr",i,"image",j,"png"),
+                       output_scene = path("scene_tr",i,"annotation",j,"json"),
+                       objects      = state.for_rendering())
+
+        """
+        for j in range(args.num_samples_per_state):
+          if os.path.exists(path("image_tr",i,"suc",j,"png")):
+            continue
+          state = copy.deepcopy(suc)
+          state.wiggle()
+          render_scene(args,
+                       output_image = path("image_tr",i,"suc",j,"png"),
+                       output_scene = path("scene_tr",i,"suc",j,"json"),
+                       objects      = state.for_rendering(),
+                       action       = state.last_action)
+        """
+          
+          
+
+
+
         break
       except Unstackable as e:
         print(e)
         pass
+
+def compute_midpoint(initial, goal, fraction):
+    if not (0 <= fraction <= 1):
+        raise ValueError("Percentage must be between 0 and 1.")
+
+    # Interpolate between start and end positions
+    current_position = list(initial[i] + fraction * (goal[i] - initial[i]) for i in range(3))
+    return current_position
+
+def compute_intermediate_state(initial, goal, step, num_steps):
+  import copy
+  res = copy.deepcopy(initial)
+
+  # calc fraction of movement
+  frac = step/float(num_steps)
+  for o_id, object in enumerate(res.objects):
+    # get current position
+    initial_pos = object.location
+
+    # get final position
+    final_pos = goal.objects[o_id].location
+
+    # calculate intermediate position
+    new_pos = compute_midpoint(initial_pos, final_pos, frac)
+    object.location = new_pos
+
+  return res
 
 
 if __name__ == '__main__':

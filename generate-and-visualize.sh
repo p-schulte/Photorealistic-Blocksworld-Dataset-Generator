@@ -20,14 +20,14 @@ else
 fi
 
 # Step 2: Call the script ./generate-dataset.sh with the required parameters
-echo "Executing ./generate-dataset.sh 6 1 1 1 true"
-./generate-dataset.sh 6 1 1 1 true
+echo "Executing ./generate-dataset.sh 6 1 10 1 true"
+./generate-dataset.sh 6 1 10 1 true
 
 # Step 3: Execute the Python file with the parameter filenamepath.json imagepath.png
 cd visualization
 PYTHON_SCRIPT="visualize_scene_graph.py" # Replace this with the name of your Python script
-PARAMETER="../cylinders-6/scene_tr/CLEVR_000000_pre_000.json"
-PARAMETER1="../cylinders-6/image_tr/CLEVR_000000_pre_000.png"
+PARAMETER="../cylinders-6/scene_tr/000000/CLEVR_annotation_005.json"
+PARAMETER1="../cylinders-6/image_tr/000000/CLEVR_image_005.png"
 if [ -f "$PYTHON_SCRIPT" ]; then
   echo "Executing Python script: $PYTHON_SCRIPT with parameter: $PARAMETER and $PARAMETER1"
   python3 "$PYTHON_SCRIPT" "$PARAMETER" "$PARAMETER1"
@@ -48,7 +48,7 @@ else
 fi
 
 # Step 5: Open the PNG file in the default web browser
-PNG_FILE="cylinders-6/image_tr/CLEVR_000000_pre_000.png" # Replace with the actual path to the generated HTML file
+PNG_FILE="cylinders-6/image_tr/000000/CLEVR_image_005.png" # Replace with the actual path to the generated HTML file
 if [ -f "$PNG_FILE" ]; then
   echo "Opening PNG file: $PNG_FILE"
   xdg-open "$PNG_FILE" # Works on Linux

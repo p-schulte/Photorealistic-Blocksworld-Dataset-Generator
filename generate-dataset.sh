@@ -76,7 +76,8 @@ job (){
                         --object-jitter 0.1      \
                         --start-idx $start_idx   \
                         --num-transitions $num_transitions \
-                        --num-samples-per-state $num_samples_per_state
+                        --num-samples-per-state $num_samples_per_state \
+                        --num-steps 1
     #./extract_all_regions_binary.py --num-samples-per-state $num_samples_per_state --out $output_dir-objs.npz --resize 16 16 $output_dir
     #./extract_all_regions_binary.py --num-samples-per-state $num_samples_per_state --out $output_dir-bgnd.npz --resize 16 16 --include-background $output_dir
     #./extract_all_regions_binary.py --num-samples-per-state $num_samples_per_state --out $output_dir-flat.npz --resize 30 45 --include-background --exclude-objects $output_dir
