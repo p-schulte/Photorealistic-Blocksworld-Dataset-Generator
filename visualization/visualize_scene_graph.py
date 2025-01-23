@@ -3,17 +3,21 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from pyvis import network as pvnet
 
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image
+
+import sys
+import pprint
+
+import os
+from pathlib import Path
+
+JSONFILE="test.json"
+IMAGEFILE="test.png"
+
 
 def rgba_to_hex(color):
-    """
-    Convert an RGBA color with values in [0, 1] range to a HEX color string.
-
-    Args:
-        color (list): A list of four floats [R, G, B, A] where each value is in the range [0, 1].
-
-    Returns:
-        str: HEX color string in the format #RRGGBB.
-    """
     r, g, b, _ = color  # Ignore the alpha channel
     return '#{:02x}{:02x}{:02x}'.format(
         int(r * 255),
@@ -22,15 +26,6 @@ def rgba_to_hex(color):
     )
 
 def create_scene_graph(data):
-    """
-    Create a scene graph as a dictionary from the given data.
-
-    Args:
-        data (dict): Parsed JSON data containing object and relationship information.
-
-    Returns:
-        dict: Scene graph represented as a dictionary.
-    """
     scene_graph = {"nodes": {}, "edges": []}
 
     # Add objects as nodes
@@ -52,81 +47,35 @@ def create_scene_graph(data):
 
     return scene_graph
 
-def visualize_matplotlib(scene_graph):
-    """
-    Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
-
-    Args:
-        scene_graph (dict): Scene graph represented as a dictionary.
-    """
-    G = nx.MultiDiGraph()
+def visualize_scene_graph_pygraphviz(scene_graph, output_file="sg_output.png"):
+    # Create a directed graph
+    A = nx.MultiDiGraph()
 
     # Add nodes with attributes
     for node_id, attributes in scene_graph["nodes"].items():
-        label = f"{attributes['shape']}\n{attributes['color']}\n{attributes['material']}"
-        G.add_node(node_id, label=label, color=attributes['color'])
+        A.add_node(
+            node_id,
+            label=f"{node_id}",
+            color=rgba_to_hex(attributes['color']),
+            style="filled",
+            fillcolor=rgba_to_hex(attributes['color']),
+        )
 
-    # Add edges with multiple relationships
+    # Add edges with labels for relationships
     for source, target, relationship in scene_graph["edges"]:
-        G.add_edge(source, target, label=relationship)
+        A.add_edge(source, target, label=relationship)
 
-    # Generate positions with more spacing to reduce overlap
-    pos = nx.spring_layout(G, k=0.5, iterations=50)  # Increase `k` for more spacing
+    graph = nx.nx_agraph.to_agraph(A)
+    graph.layout(prog="dot")
+    graph.draw(output_file)
 
-    # Draw nodes with specific colors
-    node_colors = [G.nodes[node]['color'] for node in G.nodes]
-    nx.draw(
-        G,
-        pos,
-        with_labels=True,
-        node_color=node_colors,
-        node_size=2000,
-        font_size=10,
-        edgecolors='black',
-    )
-
-    # Draw edge labels (relationships between nodes)
-    edge_labels = {}
-    for source, target, key, data in G.edges(keys=True, data=True):
-        edge_labels[(source, target, key)] = data['label']
-
-    # Place edge labels with less overlap
-    nx.draw_networkx_edge_labels(
-        G, pos, edge_labels=edge_labels, font_size=8, label_pos=0.6
-    )
-
-    # Draw edges with arrows
-    nx.draw_networkx_edges(G, pos, edgelist=G.edges, arrowstyle='->', arrowsize=20)
-
-    plt.title("Scene Graph (Multigraph)")
-    plt.show()
-
-
-
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from PIL import Image
-
-
-def create_annotations_and_display_image(json_data, png_file):
-    """
-    Creates bounding boxes for the objects and overlays them on a PNG file.
-
-    Parameters:
-    objects (dict): Object data containing 'location' and 'size' attributes.
-    png_file (str): Path to the rendered image file (PNG format).
-    image_width (int): Width of the rendered image.
-    image_height (int): Height of the rendered image.
-    """
-    # Open the PNG file
+def create_annotations_png(json_data, png_file, output_file="bbox_output.png"):
     try:
         img = Image.open(png_file)
     except FileNotFoundError:
         print(f"Error: File '{png_file}' not found.")
         return
 
-    # Define the figure and axis
     fig, ax = plt.subplots(1)
     ax.imshow(img)
 
@@ -134,13 +83,11 @@ def create_annotations_and_display_image(json_data, png_file):
     for obj_id, obj in enumerate(objects):
         color = obj["color"][:3]    # Use RGB values for the bounding box color
 
-        # Define bounding box coordinates
         xmin = obj["bbox"][0]
         ymin = obj["bbox"][1]
         xmax = obj["bbox"][2]
         ymax = obj["bbox"][3]
 
-        # Create a rectangle for the bounding box
         rect = patches.Rectangle(
             (xmin, ymin),  # Bottom-left corner
             xmax - xmin,   # Width
@@ -150,8 +97,6 @@ def create_annotations_and_display_image(json_data, png_file):
             facecolor='none'
         )
         ax.add_patch(rect)
-
-        # Add object ID as a label
         ax.text(
             xmin,
             ymin - 0,  # Position label slightly above the bounding box
@@ -161,37 +106,24 @@ def create_annotations_and_display_image(json_data, png_file):
             ha='left',
             bbox=dict(facecolor='black', edgecolor='none', alpha=0.4)
         )
-
-    # Display the image
     plt.axis('off')
-    plt.show()
+    plt.savefig(output_file, bbox_inches='tight', dpi=300)
+    #plt.show()
 
 
 
-
-
-
-
-def visualize_scene_graph(scene_graph):
-    """
-    Visualize the scene graph using NetworkX and Matplotlib as a multigraph.
-
-    Args:
-        scene_graph (dict): Scene graph represented as a dictionary.
-    """
+def visualize_scene_graph_pyviz(scene_graph):
     G = nx.MultiDiGraph()
 
-    # Add nodes with attributes
     for node_id, attributes in scene_graph["nodes"].items():
         label = f"{attributes['shape']}\n{attributes['color']}\n{attributes['material']}"
         G.add_node(node_id, label=str(node_id), color=rgba_to_hex(attributes['color']))
 
-    # Add edges with multiple relationships
     for source, target, relationship in scene_graph["edges"]:
         G.add_edge(source, target, label=relationship)
 
-    name = 'output/visualize_scene_graph_output.html'
-    g = G.copy()  # Some attributes added to nodes
+    name = 'output/visualize_scene_graph_pyviz_output.html'
+    g = G.copy()
     net = pvnet.Network(notebook=True, directed=True)
 
     opts = """
@@ -218,30 +150,56 @@ def visualize_scene_graph(scene_graph):
     """
 
     net.set_options(opts)
-    
-    # Uncomment this to play with layout
-    # net.show_buttons(filter_=['physics'])
-
     net.from_nx(g)
-
     return net.show(name)
 
-import sys
-import pprint
 
-JSONFILE="test.json"
-IMAGEFILE="test.png"
+def process_images_and_jsons(image_dir, json_dir, output_dir="visualization_output"):
+    """
+    Process all PNG and JSON file pairs from the given directories, generating annotated images and scene graphs.
 
-# Example usage
-if __name__ == "__main__":
-    # Check if a filename is provided as a command-line argument
+    Parameters:
+    image_dir (str): Directory containing PNG files.
+    json_dir (str): Directory containing JSON files.
+    output_dir (str): Directory to save the annotated images and scene graphs.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    image_files = sorted(Path(image_dir).glob("*.png"))
+    json_files = sorted(Path(json_dir).glob("*.json"))
+
+    if not image_files or not json_files:
+        print("No PNG or JSON files found in the specified directories.")
+        return
+
+    for img_file, json_file in zip(image_files, json_files):
+
+        try:
+            with open(json_file, "r") as file:
+                data = json.load(file)
+
+            annotated_image_path = os.path.join(output_dir, f"annotated_{img_file.stem[-3:]}.png")
+            scene_graph_path = os.path.join(output_dir, f"scene_graph_{img_file.stem[-3:]}.png")
+            create_annotations_png(data, img_file, output_file=annotated_image_path)
+            scene_graph = create_scene_graph(data)
+            visualize_scene_graph_pygraphviz(scene_graph, output_file=scene_graph_path)
+            print(f"Processed {img_file.name} and {json_file.name} -> Saved to {output_dir}")
+        except Exception as e:
+            print(f"Error processing {img_file.name} and {json_file.name}: {e}")
+
+
+def process_folder():
+    image_directory = "cylinders-6/image_tr/000000/"
+    json_directory = "cylinders-6/scene_tr/000000/"
+    output_directory = "visualization_output"
+    process_images_and_jsons(image_directory, json_directory, output_directory)
+
+def visualize_test():
     if len(sys.argv) > 1:
         JSONFILE = sys.argv[1]
 
     if len(sys.argv) > 2:
         IMAGEFILE = sys.argv[2]
 
-    # Read JSON data from file
     try:
         with open(JSONFILE, "r") as file:
             data = json.load(file)
@@ -252,16 +210,17 @@ if __name__ == "__main__":
         print(f"Error: Failed to decode JSON from '{JSONFILE}'.")
         sys.exit(1)
 
-    # Create the scene graph
     scene_graph = create_scene_graph(data)
 
-    # Print the nicely formatted dictionary
     pprint.pprint(scene_graph['edges'])
     pprint.pprint(scene_graph['nodes'])
 
-    # Visualize the scene graph
-    visualize_scene_graph(scene_graph)
+    visualize_scene_graph_pyviz(scene_graph)
+    visualize_scene_graph_pygraphviz(scene_graph)
+    create_annotations_png(data, IMAGEFILE)
 
-    # Visualize bounding boxes
-    #visualize_bounding_boxes(scene_graph['nodes'], IMAGEFILE)
-    create_annotations_and_display_image(data, IMAGEFILE)
+if __name__ == "__main___":
+    if len(sys.argv) > 1:
+        visualize_test()
+    else:
+        process_folder
