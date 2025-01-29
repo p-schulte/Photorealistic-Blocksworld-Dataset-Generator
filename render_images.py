@@ -151,12 +151,27 @@ def main(args):
                        action       = state.last_action)
         '''
         # --------------   OLD VERSION -----------------
-        WIGGLE_BETWEEN_IMAGES = True
 
-        for j in range(args.num_samples_per_state):
+        # get tallest thing:
+        y_max = 0
+        size_max = 0
+        for state in [pre, suc]:
+          for o_id, object in enumerate(state.objects):
+            position = object.location # [x, z, y]
+            size = object.size
+            y_max = max(y_max, position[2])
+            size_max = max(size_max, size)
+        y_operate_level = y_max+4*size_max
+
+
+
+        # render frames
+        WIGGLE_BETWEEN_IMAGES = True
+        state_sequence = compute_trajectory(pre, suc, args.num_samples_per_state, y_operate_level)
+
+        for j, state in enumerate(state_sequence):
           if os.path.exists(path("image_tr",i,"pre",j,"png")):
             continue
-          state = compute_intermediate_state(pre, suc, j, args.num_samples_per_state-1)
           if WIGGLE_BETWEEN_IMAGES:
             state.wiggle()
           render_scene(args,
@@ -212,6 +227,73 @@ def compute_intermediate_state(initial, goal, step, num_steps):
     object.location = new_pos
 
   return res
+
+
+def euclidean_distance(point1, point2):
+    import math
+    return math.sqrt(sum((a - b) ** 2 for a, b in zip(point1, point2)))
+
+
+def compute_trajectory(initial, goal, num_steps, y_operate_level, active_threshold=.5):
+  import copy
+  state_sequence_list = list()
+  active_obj_ids = list()
+   
+  # determine what objects will move:
+  for o_id, object in enumerate(initial.objects):
+    # get current and final position
+    i_pos = object.location
+    f_pos = goal.objects[o_id].location
+    
+    if euclidean_distance(i_pos, f_pos) >= active_threshold:
+      active_obj_ids.append(o_id)
+
+  # create 1. intermediate step (lifted up until y operation level)
+  step_1 = copy.deepcopy(initial)
+  for o_id, object in enumerate(step_1.objects):
+    if o_id not in active_obj_ids:
+      continue
+    # get current position
+    initial_pos = object.location
+
+    # elevate from current x and y position
+    object.location = [initial_pos[0], initial_pos[1], y_operate_level]
+
+  # create 2. intermediate step (moved in x direction on elevated level)
+  step_2 = copy.deepcopy(initial)
+  for o_id, object in enumerate(step_2.objects):
+    if o_id not in active_obj_ids:
+      continue
+    # get current position
+    initial_pos = object.location
+
+    # get final position
+    final_pos = goal.objects[o_id].location
+
+    # elevate from current x and y position
+    object.location = [final_pos[0], final_pos[1], y_operate_level]
+
+
+    ## Create array of states:
+    num_frames_step0and1 = num_steps//3
+    num_frames_step1and2 = num_steps//3 + num_steps%3
+    num_frames_step2and3 = num_steps//3
+
+    for i in range(num_frames_step0and1):
+      res = compute_intermediate_state(initial, step_1, i, num_frames_step0and1-1)
+      state_sequence_list.append(res)
+
+    for i in range(num_frames_step1and2):
+      res = compute_intermediate_state(step_1, step_2, i, num_frames_step1and2-1)
+      state_sequence_list.append(res)
+
+    for i in range(num_frames_step2and3):
+      res = compute_intermediate_state(step_2, goal, i, num_frames_step2and3-1)
+      state_sequence_list.append(res)
+
+
+    # return finished list of states
+    return state_sequence_list
 
 
 if __name__ == '__main__':

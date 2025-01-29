@@ -219,8 +219,8 @@ def visualize_test():
     visualize_scene_graph_pygraphviz(scene_graph)
     create_annotations_png(data, IMAGEFILE)
 
-if __name__ == "__main___":
+if __name__ == "__main__":
     if len(sys.argv) > 1:
         visualize_test()
     else:
-        process_folder
+        process_folder()
