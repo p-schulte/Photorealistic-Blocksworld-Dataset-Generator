@@ -1,95 +1,100 @@
+# Photo-Realistic Blocksworld
 
-# Photo-Realistic Blocksworld 
+This repository is a modified version of the [IBM Repo](https://github.com/ibm/photorealistic-blocksworld) and the [CLEVR dataset](https://github.com/facebookresearch/clevr-dataset-gen), designed to generate realistic visualizations of [Blocksworld](https://en.wikipedia.org/wiki/Blocks_world).
 
-This is a repository modified from the [IBM-Repo](https://github.com/ibm/photorealistic-blocksworld) and the  [CLEVR dataset](https://github.com/facebookresearch/clevr-dataset-gen)
-for generating realistic visualizations of [blocksworld](https://en.wikipedia.org/wiki/Blocks_world).
+## 🚀 Setup
 
-
-Setup:
-
-With anaconda,
-
-```
+### Using Anaconda:
+```bash
 conda env create -f environment.yml
 conda activate prb
 ```
 
-Install blender:
-
-```
+### Installing Blender:
+```bash
 wget https://download.blender.org/release/Blender2.83/blender-2.83.2-linux64.tar.xz
 tar xf blender-2.83.2-linux64.tar.xz
 echo $PWD > $(echo blender*/2.*/python/lib/python*/site-packages/)clevr.pth
 rm blender-2.83.2-linux64.tar.xz
 ```
 
-Example: Run `./test.sh`.
+### Running an Example:
+```bash
+./test.sh
+```
+For the original documentation, refer to [README-clevr.md](README-clevr.md) and [README-ibm.md](README-ibm.md).
 
-For the original readme, see [README-clevr.md](README-clevr.md) and [README-ibm.md](README-ibm.md).
-=
 <div align="center">
   <img src="example/image/CLEVR_new_010000.png" width="800px">
 </div>
 
-# Functionality
+---
 
-+ `render_images.py` : 
-  
-  Renders random scenes using Blender and stores them into a result directory.
-  The directory contains images and metadata.
-  This file must be run in the python environment shipped with Blender.
+## 📌 Functionality
 
-+ `generate-dataset.sh` :
+### `render_images.py`
+- Generates random scenes using Blender.
+- Saves the output images and metadata in a specified directory.
+- Must be executed within Blender's Python environment.
 
-  Render the dataset. Options are ```[number of objects] [number of transitions] [number of images per transition] [number of jobs] [use gpu?]```. Example run:
-  ```./generate-dataset.sh 5 10 3 1 true``` 
+### `generate-dataset.sh`
+- Automates dataset rendering.
+- Usage:
+  ```bash
+  ./generate-dataset.sh [number_of_objects] [number_of_transitions] [images_per_transition] [jobs] [use_gpu?]
+  ```
+  Example:
+  ```bash
+  ./generate-dataset.sh 5 10 3 1 true
+  ```
 
+### `generate-and-visualize.sh`
+- Generates and visualizes the dataset, including bounding boxes and scene graphs.
 
-+ `generate-and-visualize.sh` :
+---
 
-  Test out the dataset generator. Creates visualization for generated bounding boxes and scene graphs.
+## 🛠 Running the Script
+To generate a dataset with 10 transitions, 5 objects per state, 3 images per state, and GPU acceleration:
+```bash
+./generate-dataset.sh 5 10 3 1 true
+```
 
-# Running
+---
 
-To generate 10 transitions with 5 objects each. For every state, there are 3 images and GPU is used:
-
-    ./generate-dataset.sh 5 10 3 1 true
-
-# Visualization
-
-To visualize the generated ```.json``` file, the ```visualize_scene_graph.py``` file in the ```visualize``` folder can be used:
+## 📊 Visualization
+To visualize the generated `.json` metadata, use the `visualize_scene_graph.py` script inside the `visualize` directory:
 
 <div align="center">
   <img src="example/image/visualize_photo.png" width="500px">
 </div>
+
 <div align="center">
   <img src="example/image/Visualize.png" width="500px">
 </div>
 
+---
 
-# Citation
+## 📖 Citation
+If you use this dataset, please cite the following paper:
 
-``` bibtex
+```bibtex
 @article{asai2018blocksworld,
-	author = {Asai, Masataro},
-	journal = {arXiv preprint arXiv:1812.01818},
-	title = {{Photo-Realistic Blocksworld Dataset}},
-	year = {2018}
+  author = {Asai, Masataro},
+  journal = {arXiv preprint arXiv:1812.01818},
+  title = {{Photo-Realistic Blocksworld Dataset}},
+  year = {2018}
 }
 ```
 
-Relevant citations:
-
-``` bibtex
+Other relevant citations:
+```bibtex
 @article{asai2018perminv,
-	author = {Asai, Masataro},
-	journal = {arXiv preprint arXiv:1812.01217},
-	title = {{Set Cross Entropy: Likelihood-based Permutation Invariant Loss Function for Probability Distributions}},
-	year = {2018}
+  author = {Asai, Masataro},
+  journal = {arXiv preprint arXiv:1812.01217},
+  title = {{Set Cross Entropy: Likelihood-based Permutation Invariant Loss Function for Probability Distributions}},
+  year = {2018}
 }
-```
 
-``` bibtex
 @inproceedings{asai2019unsupervised,
   title={Unsupervised grounding of plannable first-order logic representation from images},
   author={Asai, Masataro},
@@ -100,9 +105,11 @@ Relevant citations:
 }
 ```
 
+---
 
+## 📜 License
+This repository is based on the CLEVR dataset generator developed by Facebook, Inc.
 
-This repository is based on the clevr-dataset-gen software created by Facebook, Inc.
-Copyright (c) 2017-present, Facebook, Inc. All rights reserved.
-Licensed under the BSD-3-Clause License. See the LICENSE file for details.
+**Copyright (c) 2017-present, Facebook, Inc.** All rights reserved.
+Licensed under the BSD-3-Clause License. See the `LICENSE` file for details.
 
