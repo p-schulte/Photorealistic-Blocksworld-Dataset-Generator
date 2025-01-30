@@ -2,3 +2,4 @@ numpy
 imageio
 scikit-image
 tqdm
+pyvis

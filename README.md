@@ -45,7 +45,7 @@ For the original documentation, refer to [README-clevr.md](README-clevr.md) and 
   ```
   Example:
   ```bash
-  ./generate-dataset.sh 5 10 3 1 true
+  ./generate-dataset.sh 5 1 10 1 true
   ```
 
 ### `generate-and-visualize.sh`
@@ -56,7 +56,7 @@ For the original documentation, refer to [README-clevr.md](README-clevr.md) and 
 ## 🛠 Running the Script
 To generate a dataset with 10 transitions, 5 objects per state, 3 images per state, and GPU acceleration:
 ```bash
-./generate-dataset.sh 5 10 3 1 true
+./generate-dataset.sh 5 1 10 1 true
 ```
 
 ---

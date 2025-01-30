@@ -7,7 +7,6 @@ dependencies:
   - networkx
   - matplotlib
   - pygraphviz
-  - pyvis
   - pip:
     - parallel
     - -r file:requirements.txt
