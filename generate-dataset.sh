@@ -51,7 +51,8 @@ if $gpu
 then
     export use_gpu="--use-gpu 1"
 fi
-  
+
+echo $(pwd)/source > $(ls -d blender-2.*/2.*/python/lib/python*/site-packages/)/clevr.pth
 
 SUBMIT=${SUBMIT:-"jbsub -mem 4g -cores 1+1 -queue x86_6h -proj $proj -require 'v100||a100'"}
 
@@ -60,7 +61,7 @@ job (){
     start_idx=$2
     num_transitions=$3
     blenderdir=$(ls -d blender-2.*/ | tail -n 1)
-    $blenderdir/blender -noaudio --background --python render_images.py -- \
+    $blenderdir/blender -noaudio --background --python source/render_images.py -- \
                         --properties-json data/cylinders-properties.json \
                         --render-num-samples 150 \
                         --width 300              \
