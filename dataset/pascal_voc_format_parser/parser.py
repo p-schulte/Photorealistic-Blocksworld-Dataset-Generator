@@ -45,7 +45,11 @@ def process_json(json_data, file_name,output_path):
     """Process JSON data (modify this function as needed)."""
     #print(f"Processing: {json_data}")  # Replace with actual processing logic
     json_data["image_filename"] = file_name  # Add image filename
-    create_pascal_voc_annotation(output_path, json_data)  # Create Pascal VOC annotation
+    if create_pascal_voc_annotation(output_path, json_data) == -1: # Create Pascal VOC annotation
+        return
+    
+    # process and copy image
+    #TODO: copy image to JPEGImages folder as well with regard to the same filename as for the annotation
 
 def process_json_files(base_path,output_path):
     """
@@ -112,7 +116,7 @@ def create_pascal_voc_annotation(output_path, json_data):
             ET.SubElement(bndbox, "ymax").text = str(int(ymax))
         except:
             print("Error with file: ", filename)
-            return
+            return -1
 
     # Convert ElementTree to string
     xml_str = ET.tostring(annotation, encoding="utf-8")
@@ -127,6 +131,7 @@ def create_pascal_voc_annotation(output_path, json_data):
         f.write(pretty_xml_str)
 
     print(f"Saved formatted XML: {xml_filename}")
+    return 0
 
 
 # Example usage
